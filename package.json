@@ -1,0 +1,37 @@
+{
+  "name": "third-person-camera-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/razh/third-person-camera-tests.git"
+  },
+  "author": "razh",
+  "private": true,
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/razh/third-person-camera-tests/issues"
+  },
+  "homepage": "https://github.com/razh/third-person-camera-tests",
+  "dependencies": {
+    "cannon": "^0.6.1",
+    "lodash": "^3.3.1",
+    "simplex-noise": "^2.1.1",
+    "three": "^0.70.0"
+  },
+  "devDependencies": {
+    "babelify": "^5.0.3",
+    "browser-sync": "^2.2.1",
+    "browserify": "^9.0.3",
+    "del": "^1.1.1",
+    "gulp": "^3.8.11",
+    "gulp-util": "^3.0.4",
+    "run-sequence": "^1.0.2",
+    "vinyl-source-stream": "^1.0.0",
+    "watchify": "^2.4.0"
+  }
+}
