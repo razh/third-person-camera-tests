@@ -1,5 +1,6 @@
 import THREE from 'three';
 import CANNON from 'cannon';
+import Controls from './controls';
 
 const container = document.createElement( 'div' );
 document.body.appendChild( container );
@@ -51,9 +52,13 @@ groundBody.addShape( new CANNON.Plane() );
 groundBody.quaternion.setFromAxisAngle( new CANNON.Vec3( 1, 0, 0 ), -Math.PI / 2 );
 world.add( groundBody );
 
+const controls = new Controls( camera, sphereBody );
+scene.add( controls.getObject() );
+
 function update() {
   const delta = clock.getDelta();
   world.step( dt, delta );
+  controls.update( delta );
 
   sphereMesh.position.copy( sphereBody.position );
   sphereMesh.quaternion.copy( sphereBody.quaternion );
