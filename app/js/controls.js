@@ -13,13 +13,13 @@ const HALF_PI = Math.PI / 2;
  * @author mrdoob / http://mrdoob.com/
  * @author schteppe / https://github.com/schteppe
  */
-export default function PointerLockControls( camera, cannonBody, {
+export default function Controls( camera, cannonBody, {
   eye = new THREE.Vector3( 0, 2, 0 ),
   velocity = 20,
   jumpVelocity = 20
 } = {} ) {
 
-  this.enabled = true;
+  this.enabled = false;
 
   const pitchGroup = new THREE.Group();
   pitchGroup.add( camera );

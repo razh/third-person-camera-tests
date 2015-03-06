@@ -1,6 +1,8 @@
 import THREE from 'three';
 import CANNON from 'cannon';
+
 import Controls from './controls';
+import pointerLock from './pointer-lock';
 
 const container = document.createElement( 'div' );
 document.body.appendChild( container );
@@ -54,6 +56,7 @@ world.add( groundBody );
 
 const controls = new Controls( camera, sphereBody );
 scene.add( controls.getObject() );
+pointerLock( controls );
 
 function update() {
   const delta = clock.getDelta();
