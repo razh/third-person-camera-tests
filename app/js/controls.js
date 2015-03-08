@@ -76,7 +76,6 @@ export default function Controls( camera, cannonBody, {
   // the object if the run is down.
   const dv = new THREE.Vector3();
   const euler = new THREE.Euler();
-  euler.order = 'XYZ';
 
   this.update = dt => {
     if ( !this.enabled ) {
@@ -91,7 +90,8 @@ export default function Controls( camera, cannonBody, {
     if ( move.right    ) { dv.x =  velocity * dt; }
 
     // Convert velocity to world coordinates.
-    euler.set( pitchGroup.rotation.x, yawGroup.rotation.y, 0 );
+    euler.x = pitchGroup.rotation.x;
+    euler.y = yawGroup.rotation.y;
     quat.setFromEuler( euler );
     dv.applyQuaternion( quat );
 
