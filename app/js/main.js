@@ -149,6 +149,14 @@ start();
 window.addEventListener( 'focus', start );
 window.addEventListener( 'blur', stop );
 
+window.addEventListener( 'resize', () => {
+  renderer.setPixelRatio( window.devicePixelRatio );
+  renderer.setSize( window.innerWidth, window.innerHeight );
+
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
 document.addEventListener( 'keydown', event => {
   // R. Reset.
   if ( event.keyCode === 82 ) {
