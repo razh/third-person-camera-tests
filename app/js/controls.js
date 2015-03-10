@@ -15,8 +15,8 @@ const HALF_PI = Math.PI / 2;
  */
 export default function Controls( camera, cannonBody, {
   eye = new THREE.Vector3( 0, 2, 0 ),
-  velocity = 20,
-  jumpVelocity = 20
+  velocity = 96,
+  jumpVelocity = 12
 } = {} ) {
 
   this.enabled = false;

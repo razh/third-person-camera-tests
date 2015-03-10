@@ -16,13 +16,14 @@ container.appendChild( renderer.domElement );
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight );
-camera.position.set( 0, 8, 32 );
+camera.position.set( 0, 4, 16 );
 scene.add( camera );
 
+const wireframeMaterial = new THREE.MeshPhongMaterial({ wireframe: true });
 const material = new THREE.MeshPhongMaterial();
 
-const sphereGeometry = new THREE.SphereGeometry( 1, 32, 24 );
-const sphereMesh = new THREE.Mesh( sphereGeometry, material );
+const sphereGeometry = new THREE.SphereGeometry( 1 );
+const sphereMesh = new THREE.Mesh( sphereGeometry, wireframeMaterial );
 sphereMesh.castShadow = true;
 sphereMesh.receiveShadow = true;
 scene.add( sphereMesh );
@@ -87,9 +88,8 @@ const world = new CANNON.World();
 world.gravity.set( 0, -9.81, 0 );
 
 const sphereBody = new CANNON.Body({
-  mass: 1,
-  position: new CANNON.Vec3( 0, 16, 0 ),
-  angularVelocity: new CANNON.Vec3( 2, 0, -2 )
+  mass: 4,
+  position: new CANNON.Vec3( 0, 16, 0 )
 });
 sphereBody.addShape( new CANNON.Sphere() );
 world.add( sphereBody );
@@ -120,6 +120,13 @@ function update() {
   const delta = clock.getDelta();
   world.step( dt, delta );
   controls.update( delta );
+
+  // Damp along x/z-axes.
+  sphereBody.velocity.x -= sphereBody.velocity.x * 10 * delta;
+  sphereBody.velocity.z -= sphereBody.velocity.z * 10 * delta;
+
+  // Look straight up.
+  sphereBody.quaternion.set( 0, 0, 1, 0 );
 
   sphereMesh.position.copy( sphereBody.position );
   sphereMesh.quaternion.copy( sphereBody.quaternion );
