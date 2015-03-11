@@ -22,13 +22,19 @@ scene.add( camera );
 const wireframeMaterial = new THREE.MeshPhongMaterial({ wireframe: true });
 const material = new THREE.MeshPhongMaterial();
 
-const sphereGeometry = new THREE.SphereGeometry( 1 );
-const sphereMesh = new THREE.Mesh( sphereGeometry, wireframeMaterial );
-sphereMesh.castShadow = true;
-sphereMesh.receiveShadow = true;
-scene.add( sphereMesh );
+const lowerSphereGeometry = new THREE.SphereGeometry( 1 );
+const lowerSphereMesh = new THREE.Mesh( lowerSphereGeometry, wireframeMaterial );
+lowerSphereMesh.castShadow = true;
+lowerSphereMesh.receiveShadow = true;
+scene.add( lowerSphereMesh );
 
-const planeGeometry = new THREE.PlaneGeometry( 32, 32, 8, 8 );
+const upperSphereGeometry = new THREE.SphereGeometry( 1.25 );
+const upperSphereMesh = new THREE.Mesh( upperSphereGeometry, wireframeMaterial );
+upperSphereMesh.castShadow = true;
+upperSphereMesh.receiveShadow = true;
+scene.add( upperSphereMesh );
+
+const planeGeometry = new THREE.PlaneGeometry( 40, 40, 8, 8 );
 const planeMatrix = new THREE.Matrix4().makeRotationX( -Math.PI / 2 );
 planeGeometry.applyMatrix( planeMatrix );
 const planeMesh = new THREE.Mesh( planeGeometry, material );
@@ -52,6 +58,8 @@ const spotLight = new THREE.SpotLight( 0x888888 );
 spotLight.castShadow = true;
 spotLight.shadowCameraNear = 24;
 spotLight.shadowCameraFar = 72;
+spotLight.shadowMapWidth = 1024;
+spotLight.shadowMapHeight = 1024;
 spotLight.position.set( 0, 48, 32 );
 scene.add( spotLight );
 
@@ -87,12 +95,29 @@ let running = true;
 const world = new CANNON.World();
 world.gravity.set( 0, -9.81, 0 );
 
-const sphereBody = new CANNON.Body({
+const lowerSphereBody = new CANNON.Body({
   mass: 4,
   position: new CANNON.Vec3( 0, 16, 0 )
 });
-sphereBody.addShape( new CANNON.Sphere() );
-world.add( sphereBody );
+lowerSphereBody.addShape( new CANNON.Sphere() );
+world.add( lowerSphereBody );
+
+const upperSphereBody = new CANNON.Body({
+  mass: 2,
+  position: new CANNON.Vec3( 0, 18, 0 )
+});
+upperSphereBody.addShape( new CANNON.Sphere( 1.25 ) );
+world.add( upperSphereBody );
+
+const sphereConstraint = new CANNON.PointToPointConstraint(
+  lowerSphereBody,
+  new CANNON.Vec3(),
+  upperSphereBody,
+  new CANNON.Vec3( 0, 1.25, 0 ),
+  4
+);
+sphereConstraint.collideConnected = false;
+world.addConstraint( sphereConstraint );
 
 const groundBody = new CANNON.Body({
   mass: 0
@@ -112,7 +137,7 @@ tetrahedronBody.addShape(
 );
 world.add( tetrahedronBody );
 
-const controls = new Controls( camera, sphereBody );
+const controls = new Controls( camera, lowerSphereBody );
 scene.add( controls.getObject() );
 pointerLock( controls );
 
@@ -121,12 +146,18 @@ function update() {
   world.step( dt, delta );
   controls.update( delta );
 
+  upperSphereBody.position.x = lowerSphereBody.position.x;
+  upperSphereBody.position.z = lowerSphereBody.position.z;
 
   // Look straight up.
-  sphereBody.quaternion.set( 0, 0, 1, 0 );
+  lowerSphereBody.quaternion.set( 0, 0, 1, 0 );
+  upperSphereBody.quaternion.set( 0, 0, 1, 0 );
 
-  sphereMesh.position.copy( sphereBody.position );
-  sphereMesh.quaternion.copy( sphereBody.quaternion );
+  lowerSphereMesh.position.copy( lowerSphereBody.position );
+  lowerSphereMesh.quaternion.copy( lowerSphereBody.quaternion );
+
+  upperSphereMesh.position.copy( upperSphereBody.position );
+  upperSphereMesh.quaternion.copy( upperSphereBody.quaternion );
 }
 
 function animate() {
@@ -164,7 +195,7 @@ window.addEventListener( 'resize', () => {
 document.addEventListener( 'keydown', event => {
   // R. Reset.
   if ( event.keyCode === 82 ) {
-    sphereBody.position.set( 0, 16, 0 );
-    sphereBody.velocity.setZero();
+    lowerSphereBody.position.set( 0, 16, 0 );
+    lowerSphereBody.velocity.setZero();
   }
 });
