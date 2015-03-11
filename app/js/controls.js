@@ -14,9 +14,10 @@ const HALF_PI = Math.PI / 2;
  * @author schteppe / https://github.com/schteppe
  */
 export default function Controls( camera, cannonBody, {
-  eye = new THREE.Vector3( 0, 2, 0 ),
-  velocity = 96,
-  jumpVelocity = 12
+  velocity = 64,
+  jumpVelocity = 12,
+  damping = 8,
+  airControl = 0.25
 } = {} ) {
 
   this.enabled = false;
@@ -37,7 +38,7 @@ export default function Controls( camera, cannonBody, {
     right:    false
   };
 
-  let canJump = false;
+  let onGround = false;
 
   // Normal in the contact, pointing out of whatever the player touched.
   const contactNormal = new CANNON.Vec3();
@@ -59,7 +60,7 @@ export default function Controls( camera, cannonBody, {
     // If contactNormal.dot(up) is in [0, 1], the normal is in the up direction.
     // This threshold value should be in [0, 1].
     if ( contactNormal.dot( up ) > 0.5 ) {
-      canJump = true;
+      onGround = true;
     }
   });
 
@@ -78,26 +79,36 @@ export default function Controls( camera, cannonBody, {
   const euler = new THREE.Euler();
 
   this.update = dt => {
-    if ( !this.enabled ) {
-      return;
-    }
-
     dv.set( 0, 0, 0 );
 
-    if ( move.forward  ) { dv.z = -velocity * dt; }
-    if ( move.backward ) { dv.z =  velocity * dt; }
-    if ( move.left     ) { dv.x = -velocity * dt; }
-    if ( move.right    ) { dv.x =  velocity * dt; }
+    if ( this.enabled ) {
+      if ( move.forward  ) { dv.z = -velocity * dt; }
+      if ( move.backward ) { dv.z =  velocity * dt; }
+      if ( move.left     ) { dv.x = -velocity * dt; }
+      if ( move.right    ) { dv.x =  velocity * dt; }
 
-    // Convert velocity to world coordinates.
-    euler.x = pitchGroup.rotation.x;
-    euler.y = yawGroup.rotation.y;
-    quat.setFromEuler( euler );
-    dv.applyQuaternion( quat );
+      // Convert velocity to world coordinates.
+      euler.x = pitchGroup.rotation.x;
+      euler.y = yawGroup.rotation.y;
+      quat.setFromEuler( euler );
+      dv.applyQuaternion( quat );
+    }
 
-    // Add to object.
-    cannonBody.velocity.x += dv.x;
-    cannonBody.velocity.z += dv.z;
+    let dx = dv.x;
+    let dz = dv.z;
+
+    // Damp along x/z-axes.
+    dx -= cannonBody.velocity.x * damping * dt;
+    dz -= cannonBody.velocity.z * damping * dt;
+
+    if ( !onGround ) {
+      dx *= airControl;
+      dz *= airControl;
+    }
+
+    // Apply input velocity.
+    cannonBody.velocity.x += dx;
+    cannonBody.velocity.z += dz;
 
     yawGroup.position.copy( cannonBody.position );
   };
@@ -148,11 +159,11 @@ export default function Controls( camera, cannonBody, {
 
       // Space.
       case 32:
-        if ( canJump ) {
+        if ( onGround ) {
           cannonBody.velocity.y = jumpVelocity;
         }
 
-        canJump = false;
+        onGround = false;
         break;
     }
   };

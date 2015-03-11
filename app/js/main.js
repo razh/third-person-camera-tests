@@ -16,7 +16,7 @@ container.appendChild( renderer.domElement );
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight );
-camera.position.set( 0, 4, 16 );
+camera.position.set( 0, 2, 6 );
 scene.add( camera );
 
 const wireframeMaterial = new THREE.MeshPhongMaterial({ wireframe: true });
@@ -121,9 +121,6 @@ function update() {
   world.step( dt, delta );
   controls.update( delta );
 
-  // Damp along x/z-axes.
-  sphereBody.velocity.x -= sphereBody.velocity.x * 10 * delta;
-  sphereBody.velocity.z -= sphereBody.velocity.z * 10 * delta;
 
   // Look straight up.
   sphereBody.quaternion.set( 0, 0, 1, 0 );
