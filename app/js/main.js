@@ -22,17 +22,47 @@ scene.add( camera );
 const wireframeMaterial = new THREE.MeshPhongMaterial({ wireframe: true });
 const material = new THREE.MeshPhongMaterial();
 
-const lowerSphereGeometry = new THREE.SphereGeometry( 1 );
+const LOWER_SPHERE_RADIUS = 0.75;
+const UPPER_SPHERE_RADIUS = 1;
+const LOWER_SPHERE_MASS = 2;
+const UPPER_SPHERE_MASS = 2;
+const SPHERE_CONSTRAINT_FORCE = 16;
+
+const lowerSphereGeometry = new THREE.SphereGeometry( LOWER_SPHERE_RADIUS );
 const lowerSphereMesh = new THREE.Mesh( lowerSphereGeometry, wireframeMaterial );
 lowerSphereMesh.castShadow = true;
 lowerSphereMesh.receiveShadow = true;
 scene.add( lowerSphereMesh );
 
-const upperSphereGeometry = new THREE.SphereGeometry( 1.25 );
+const upperSphereGeometry = new THREE.SphereGeometry( UPPER_SPHERE_RADIUS );
 const upperSphereMesh = new THREE.Mesh( upperSphereGeometry, wireframeMaterial );
 upperSphereMesh.castShadow = true;
 upperSphereMesh.receiveShadow = true;
 scene.add( upperSphereMesh );
+
+const boxes = [
+  {
+    position: [ 12, 2, 0 ],
+    dimensions: [ 8, 4, 4 ]
+  },
+  {
+    position: [ 8, 1, 6 ],
+    dimensions: [ 8, 2, 4 ]
+  },
+  {
+    position: [ 4, 0.5, 12 ],
+    dimensions: [ 4, 1, 4 ]
+  }
+];
+
+boxes.forEach( box => {
+  const boxGeometry = new THREE.BoxGeometry( ...box.dimensions );
+  const boxMesh = new THREE.Mesh( boxGeometry, material );
+  boxMesh.position.set( ...box.position );
+  boxMesh.castShadow = true;
+  boxMesh.receiveShadow = true;
+  scene.add( boxMesh );
+});
 
 const planeGeometry = new THREE.PlaneGeometry( 40, 40, 8, 8 );
 const planeMatrix = new THREE.Matrix4().makeRotationX( -Math.PI / 2 );
@@ -96,28 +126,40 @@ const world = new CANNON.World();
 world.gravity.set( 0, -9.81, 0 );
 
 const lowerSphereBody = new CANNON.Body({
-  mass: 4,
+  mass: LOWER_SPHERE_MASS,
   position: new CANNON.Vec3( 0, 16, 0 )
 });
-lowerSphereBody.addShape( new CANNON.Sphere() );
+lowerSphereBody.addShape( new CANNON.Sphere( LOWER_SPHERE_RADIUS ) );
 world.add( lowerSphereBody );
 
 const upperSphereBody = new CANNON.Body({
-  mass: 2,
-  position: new CANNON.Vec3( 0, 18, 0 )
+  mass: UPPER_SPHERE_MASS,
+  position: lowerSphereBody.position.clone()
 });
-upperSphereBody.addShape( new CANNON.Sphere( 1.25 ) );
+upperSphereBody.addShape( new CANNON.Sphere( UPPER_SPHERE_RADIUS ) );
 world.add( upperSphereBody );
 
 const sphereConstraint = new CANNON.PointToPointConstraint(
   lowerSphereBody,
   new CANNON.Vec3(),
   upperSphereBody,
-  new CANNON.Vec3( 0, 1.25, 0 ),
-  4
+  new CANNON.Vec3( 0, UPPER_SPHERE_RADIUS, 0 ),
+  SPHERE_CONSTRAINT_FORCE
 );
 sphereConstraint.collideConnected = false;
 world.addConstraint( sphereConstraint );
+
+boxes.forEach( box => {
+  const boxBody = new CANNON.Body({
+    mass: 0,
+    position: new CANNON.Vec3( ...box.position )
+  });
+
+  const halfExtents = new CANNON.Vec3( ...box.dimensions.map( d => d / 2 ) );
+  const boxShape = new CANNON.Box( halfExtents );
+  boxBody.addShape( boxShape );
+  world.add( boxBody );
+});
 
 const groundBody = new CANNON.Body({
   mass: 0

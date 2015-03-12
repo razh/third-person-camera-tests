@@ -82,10 +82,11 @@ export default function Controls( camera, cannonBody, {
     dv.set( 0, 0, 0 );
 
     if ( this.enabled ) {
-      if ( move.forward  ) { dv.z = -velocity * dt; }
-      if ( move.backward ) { dv.z =  velocity * dt; }
-      if ( move.left     ) { dv.x = -velocity * dt; }
-      if ( move.right    ) { dv.x =  velocity * dt; }
+      if ( move.forward  ) { dv.z += -1; }
+      if ( move.backward ) { dv.z +=  1; }
+      if ( move.left     ) { dv.x += -1; }
+      if ( move.right    ) { dv.x +=  1; }
+      dv.setLength( velocity * dt );
 
       // Convert velocity to world coordinates.
       euler.x = pitchGroup.rotation.x;
