@@ -15,7 +15,7 @@ const HALF_PI = Math.PI / 2;
  */
 export default function Controls( camera, cannonBody, {
   velocity = 64,
-  jumpVelocity = 12,
+  jumpVelocity = 8,
   damping = 8,
   airControl = 0.25
 } = {} ) {

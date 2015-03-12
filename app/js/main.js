@@ -24,21 +24,16 @@ const material = new THREE.MeshPhongMaterial();
 
 const LOWER_SPHERE_RADIUS = 0.75;
 const UPPER_SPHERE_RADIUS = 1;
-const LOWER_SPHERE_MASS = 2;
-const UPPER_SPHERE_MASS = 2;
-const SPHERE_CONSTRAINT_FORCE = 16;
+const SPHERE_MASS = 2;
 
-const lowerSphereGeometry = new THREE.SphereGeometry( LOWER_SPHERE_RADIUS );
-const lowerSphereMesh = new THREE.Mesh( lowerSphereGeometry, wireframeMaterial );
-lowerSphereMesh.castShadow = true;
-lowerSphereMesh.receiveShadow = true;
-scene.add( lowerSphereMesh );
-
+const sphereGeometry = new THREE.SphereGeometry( LOWER_SPHERE_RADIUS );
 const upperSphereGeometry = new THREE.SphereGeometry( UPPER_SPHERE_RADIUS );
-const upperSphereMesh = new THREE.Mesh( upperSphereGeometry, wireframeMaterial );
-upperSphereMesh.castShadow = true;
-upperSphereMesh.receiveShadow = true;
-scene.add( upperSphereMesh );
+const upperSphereMatrix = new THREE.Matrix4().makeTranslation( 0, -UPPER_SPHERE_RADIUS, 0 );
+sphereGeometry.merge( upperSphereGeometry, upperSphereMatrix );
+const sphereMesh = new THREE.Mesh( sphereGeometry, wireframeMaterial );
+sphereMesh.castShadow = true;
+sphereMesh.receiveShadow = true;
+scene.add( sphereMesh );
 
 const boxes = [
   {
@@ -125,29 +120,16 @@ let running = true;
 const world = new CANNON.World();
 world.gravity.set( 0, -9.81, 0 );
 
-const lowerSphereBody = new CANNON.Body({
-  mass: LOWER_SPHERE_MASS,
+const sphereBody = new CANNON.Body({
+  mass: SPHERE_MASS,
   position: new CANNON.Vec3( 0, 16, 0 )
 });
-lowerSphereBody.addShape( new CANNON.Sphere( LOWER_SPHERE_RADIUS ) );
-world.add( lowerSphereBody );
-
-const upperSphereBody = new CANNON.Body({
-  mass: UPPER_SPHERE_MASS,
-  position: lowerSphereBody.position.clone()
-});
-upperSphereBody.addShape( new CANNON.Sphere( UPPER_SPHERE_RADIUS ) );
-world.add( upperSphereBody );
-
-const sphereConstraint = new CANNON.PointToPointConstraint(
-  lowerSphereBody,
-  new CANNON.Vec3(),
-  upperSphereBody,
-  new CANNON.Vec3( 0, UPPER_SPHERE_RADIUS, 0 ),
-  SPHERE_CONSTRAINT_FORCE
+sphereBody.addShape( new CANNON.Sphere( LOWER_SPHERE_RADIUS ) );
+sphereBody.addShape(
+  new CANNON.Sphere( UPPER_SPHERE_RADIUS ),
+  new CANNON.Vec3( 0, -UPPER_SPHERE_RADIUS, 0 )
 );
-sphereConstraint.collideConnected = false;
-world.addConstraint( sphereConstraint );
+world.add( sphereBody );
 
 boxes.forEach( box => {
   const boxBody = new CANNON.Body({
@@ -179,7 +161,7 @@ tetrahedronBody.addShape(
 );
 world.add( tetrahedronBody );
 
-const controls = new Controls( camera, lowerSphereBody );
+const controls = new Controls( camera, sphereBody );
 scene.add( controls.getObject() );
 pointerLock( controls );
 
@@ -188,18 +170,11 @@ function update() {
   world.step( dt, delta );
   controls.update( delta );
 
-  upperSphereBody.position.x = lowerSphereBody.position.x;
-  upperSphereBody.position.z = lowerSphereBody.position.z;
-
   // Look straight up.
-  lowerSphereBody.quaternion.set( 0, 0, 1, 0 );
-  upperSphereBody.quaternion.set( 0, 0, 1, 0 );
+  sphereBody.quaternion.set( 0, 0, 1, 0 );
 
-  lowerSphereMesh.position.copy( lowerSphereBody.position );
-  lowerSphereMesh.quaternion.copy( lowerSphereBody.quaternion );
-
-  upperSphereMesh.position.copy( upperSphereBody.position );
-  upperSphereMesh.quaternion.copy( upperSphereBody.quaternion );
+  sphereMesh.position.copy( sphereBody.position );
+  sphereMesh.quaternion.copy( sphereBody.quaternion );
 }
 
 function animate() {
@@ -237,7 +212,7 @@ window.addEventListener( 'resize', () => {
 document.addEventListener( 'keydown', event => {
   // R. Reset.
   if ( event.keyCode === 82 ) {
-    lowerSphereBody.position.set( 0, 16, 0 );
-    lowerSphereBody.velocity.setZero();
+    sphereBody.position.set( 0, 16, 0 );
+    sphereBody.velocity.setZero();
   }
 });
