@@ -35,9 +35,19 @@ sphereMesh.castShadow = true;
 sphereMesh.receiveShadow = true;
 scene.add( sphereMesh );
 
+const directionVector = new THREE.Vector3();
+const directionGeometry = new THREE.CylinderGeometry( 0, 0.25, 0.75, 3 );
+directionGeometry.applyMatrix(
+  new THREE.Matrix4().makeRotationFromEuler(
+    new THREE.Euler( Math.PI / 2, Math.PI, 0 )
+  )
+);
+const directionMesh = new THREE.Mesh( directionGeometry, material );
+scene.add( directionMesh );
+
 const boxes = [
   {
-    position: [ 12, 2, 0 ],
+    position: [ 12, 2, -1 ],
     dimensions: [ 8, 4, 4 ]
   },
   {
@@ -175,6 +185,16 @@ function update() {
 
   sphereMesh.position.copy( sphereBody.position );
   sphereMesh.quaternion.copy( sphereBody.quaternion );
+
+  // Set direction.
+  directionVector.copy( sphereBody.position );
+  directionVector.x += sphereBody.velocity.x;
+  directionVector.z += sphereBody.velocity.z;
+
+  directionMesh.position.copy( sphereBody.position );
+  directionMesh.lookAt( directionVector );
+  directionMesh.position.y += 1.3 *
+    ( LOWER_SPHERE_RADIUS + UPPER_SPHERE_RADIUS );
 }
 
 function animate() {
