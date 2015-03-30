@@ -74,7 +74,7 @@ boxes.forEach( box => {
   scene.add( boxMesh );
 });
 
-const planeGeometry = new THREE.PlaneGeometry( 40, 40, 8, 8 );
+const planeGeometry = new THREE.PlaneBufferGeometry( 40, 40, 8, 8 );
 const planeMatrix = new THREE.Matrix4().makeRotationX( -Math.PI / 2 );
 planeGeometry.applyMatrix( planeMatrix );
 planeGeometry.computeFaceNormals();
@@ -141,47 +141,43 @@ world.gravity.set( 0, -9.81, 0 );
 
 const sphereBody = new CANNON.Body({
   mass: SPHERE_MASS,
-  position: new CANNON.Vec3( 0, 16, 0 )
+  position: new CANNON.Vec3( 0, 16, 0 ),
+  shape: new CANNON.Sphere( LOWER_SPHERE_RADIUS )
 });
-sphereBody.addShape( new CANNON.Sphere( LOWER_SPHERE_RADIUS ) );
 sphereBody.addShape(
   new CANNON.Sphere( UPPER_SPHERE_RADIUS ),
   new CANNON.Vec3( 0, -UPPER_SPHERE_RADIUS, 0 )
 );
-world.add( sphereBody );
+world.addBody( sphereBody );
 
 boxes.forEach( box => {
+  const halfExtents = new CANNON.Vec3( ...box.dimensions.map( d => d / 2 ) );
   const boxBody = new CANNON.Body({
     mass: 0,
-    position: new CANNON.Vec3( ...box.position )
+    position: new CANNON.Vec3( ...box.position ),
+    shape: new CANNON.Box( halfExtents )
   });
-
-  const halfExtents = new CANNON.Vec3( ...box.dimensions.map( d => d / 2 ) );
-  const boxShape = new CANNON.Box( halfExtents );
-  boxBody.addShape( boxShape );
-  world.add( boxBody );
+  world.addBody( boxBody );
 });
 
 const groundBody = new CANNON.Body({
-  mass: 0
+  mass: 0,
+  shape: new CANNON.Plane()
 });
-groundBody.addShape( new CANNON.Plane() );
 groundBody.quaternion.setFromAxisAngle(
   new CANNON.Vec3( 1, 0, 0 ),
   -Math.PI / 2
 );
-world.add( groundBody );
+world.addBody( groundBody );
 
 const tetrahedronBody = new CANNON.Body({
-  mass: 0
-});
-tetrahedronBody.addShape(
-  new CANNON.ConvexPolyhedron(
-   convertVertices( tetrahedronGeometry.vertices ),
-   convertFaces( tetrahedronGeometry.faces )
+  mass: 0,
+  shape: new CANNON.ConvexPolyhedron(
+    convertVertices( tetrahedronGeometry.vertices ),
+    convertFaces( tetrahedronGeometry.faces )
   )
-);
-world.add( tetrahedronBody );
+});
+world.addBody( tetrahedronBody );
 
 const controls = new Controls( camera, sphereBody );
 scene.add( controls.getObject() );
