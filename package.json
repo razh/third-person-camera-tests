@@ -19,19 +19,19 @@
   "homepage": "https://github.com/razh/third-person-camera-tests",
   "dependencies": {
     "cannon": "^0.6.2",
-    "lodash": "^3.6.0",
-    "simplex-noise": "^2.1.1",
-    "three": "^0.70.0"
+    "lodash": "^3.9.3",
+    "simplex-noise": "^2.2.0",
+    "three": "^0.71.0"
   },
   "devDependencies": {
-    "babelify": "^5.0.4",
-    "browser-sync": "^2.5.0",
-    "browserify": "^9.0.3",
-    "del": "^1.1.1",
-    "gulp": "^3.8.11",
-    "gulp-util": "^3.0.4",
-    "run-sequence": "^1.0.2",
+    "babelify": "^6.1.2",
+    "browser-sync": "^2.7.12",
+    "browserify": "^10.2.4",
+    "del": "^1.2.0",
+    "gulp": "^3.9.0",
+    "gulp-util": "^3.0.6",
+    "run-sequence": "^1.1.1",
     "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.0.0"
+    "watchify": "^3.2.3"
   }
 }
