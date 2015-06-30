@@ -25,12 +25,61 @@ function convertFaces( threeFaces ) {
 }
 
 function createBoxMesh( box ) {
-  const boxGeometry = new THREE.BoxGeometry( ...box.dimensions );
-  const boxMesh = new THREE.Mesh( boxGeometry, material );
-  boxMesh.position.set( ...box.position );
-  boxMesh.castShadow = true;
-  boxMesh.receiveShadow = true;
-  return boxMesh;
+  const geometry = new THREE.BoxGeometry( ...box.dimensions );
+  const mesh = new THREE.Mesh( geometry, material );
+  mesh.position.set( ...box.position );
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
+function createBoxBody( box ) {
+  const halfExtents = new CANNON.Vec3( ...box.dimensions.map( d => d / 2 ) );
+  return new CANNON.Body({
+    mass: 0,
+    position: new CANNON.Vec3( ...box.position ),
+    shape: new CANNON.Box( halfExtents )
+  });
+}
+
+
+function createBlocks(
+  width, depth,
+  xCount, zCount,
+  spacing,
+  minHeight, maxHeight
+) {
+  const halfWidth = width / 2;
+  const halfDepth = depth / 2;
+
+  const blockWidth = ( width - ( xCount - 1 ) * spacing ) / xCount;
+  const blockDepth = ( depth - ( zCount - 1 ) * spacing ) / zCount;
+
+  const halfBlockWidth = blockWidth / 2;
+  const halfBlockDepth = blockDepth / 2;
+
+  const blocks = [];
+
+  for ( let x = 0; x < xCount; x++ ) {
+    for ( let z = 0; z < zCount; z++ ) {
+      const height = minHeight + Math.random() * ( maxHeight - minHeight );
+
+      blocks.push({
+        position: [
+          x * ( blockWidth + spacing ) + halfBlockWidth - halfWidth,
+          height / 2,
+          z * ( blockDepth + spacing ) + halfBlockDepth - halfDepth
+        ],
+        dimensions: [
+          blockWidth,
+          height,
+          blockDepth
+        ]
+      });
+    }
+  }
+
+  return blocks;
 }
 
 const scenes = [
@@ -90,15 +139,7 @@ const scenes = [
     scene.add( ambientLight );
 
     // Physics.
-    boxes.forEach( box => {
-      const halfExtents = new CANNON.Vec3( ...box.dimensions.map( d => d / 2 ) );
-      const boxBody = new CANNON.Body({
-        mass: 0,
-        position: new CANNON.Vec3( ...box.position ),
-        shape: new CANNON.Box( halfExtents )
-      });
-      world.addBody( boxBody );
-    });
+    boxes.forEach( box => world.addBody( createBoxBody( box ) ) );
 
     const groundBody = new CANNON.Body({
       mass: 0,
