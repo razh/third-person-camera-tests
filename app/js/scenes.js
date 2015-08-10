@@ -27,7 +27,7 @@ function convertFaces( threeFaces ) {
 function createBoxMesh( box ) {
   const geometry = new THREE.BoxGeometry( ...box.dimensions );
   const mesh = new THREE.Mesh( geometry, material );
-  mesh.position.set( ...box.position );
+  mesh.position.fromArray( box.position );
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   return mesh;
@@ -82,8 +82,8 @@ function createBlocks(
   return blocks;
 }
 
-const scenes = [
-  ( scene, world ) => {
+const scenes = {
+  basic( scene, world ) {
     const boxes = [
       {
         position: [ 12, 2, -1 ],
@@ -160,8 +160,8 @@ const scenes = [
     });
     world.addBody( tetrahedronBody );
   }
-];
+};
 
-export default function createScene( index ) {
-  return scenes[ index ];
+export default function createScene( name ) {
+  return scenes[ name ];
 }

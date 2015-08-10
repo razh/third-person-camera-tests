@@ -39,7 +39,7 @@ const controls = new Controls( camera, player.body );
 scene.add( controls.getObject() );
 pointerLock( controls );
 
-createScene( 0 )( scene, world );
+createScene( 'basic' )( scene, world );
 
 function update() {
   const delta = clock.getDelta();
